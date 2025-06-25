@@ -6,7 +6,7 @@ plugins {
     signing
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.jmh)
-    alias(libs.plugins.ktlint)
+    //alias(libs.plugins.ktlint)
     alias(libs.plugins.vanniktech.publish)
     `jvm-test-suite`
     `maven-publish`
@@ -51,7 +51,7 @@ allprojects {
 
 private val exclusionRegex = Regex("""osrs-\d+""")
 subprojects {
-    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+    //apply(plugin = "org.jlleitschuh.gradle.ktlint")
     apply(plugin = "signing")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "jvm-test-suite")
