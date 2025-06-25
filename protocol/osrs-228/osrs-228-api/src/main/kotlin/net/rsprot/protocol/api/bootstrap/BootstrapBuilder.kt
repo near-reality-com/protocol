@@ -199,14 +199,14 @@ public class BootstrapBuilder {
     }
 
     private fun getEventLoopGroupTypes(): Array<out EventLoopGroupType> {
-        val types = this.eventLoopGroupTypes
-        if (types != null) {
-            return types
-        }
+//        val types = this.eventLoopGroupTypes
+//        if (types != null) {
+//            return types
+//        }
         return arrayOf(
-            IOURING,
-            EPOLL,
-            KQUEUE,
+//            IOURING,
+//            EPOLL,
+//            KQUEUE,
             NIO,
         )
     }
@@ -286,9 +286,9 @@ public class BootstrapBuilder {
 
     private fun determineSocketChannel(): Class<out ServerChannel> =
         when {
-            IoUring.isAvailable() -> IoUringServerSocketChannel::class.java
-            Epoll.isAvailable() -> EpollServerSocketChannel::class.java
-            KQueue.isAvailable() -> KQueueServerSocketChannel::class.java
+//            IoUring.isAvailable() -> IoUringServerSocketChannel::class.java
+//            Epoll.isAvailable() -> EpollServerSocketChannel::class.java
+//            KQueue.isAvailable() -> KQueueServerSocketChannel::class.java
             else -> NioServerSocketChannel::class.java
         }
 
