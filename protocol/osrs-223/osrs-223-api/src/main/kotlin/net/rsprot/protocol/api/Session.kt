@@ -237,6 +237,7 @@ public class Session<R>(
         }
         this.disconnectionHook.set(null)
         this.channelStatus = ChannelStatus.CLOSING
+        this.stopReading()
         this.flush()
         return true
     }
@@ -251,6 +252,7 @@ public class Session<R>(
             return false
         }
         this.channelStatus = ChannelStatus.CLOSING
+        this.stopReading()
         this.flush()
         return true
     }
@@ -417,14 +419,28 @@ public class Session<R>(
      * Sets auto-read back to true and single decode back to false.
      */
     internal fun resumeReading() {
-        setReadStatus(stopReading = false)
+        if (!ctx.channel().isOpen) {
+            return
+        }
+        try {
+            setReadStatus(stopReading = false)
+        } catch (e: Exception) {
+            logger.debug(e) { "Unable to continue reading from the channel - channel already closed." }
+        }
     }
 
     /**
      * Sets auto-read back to false and single decode back to true.
      */
     internal fun stopReading() {
-        setReadStatus(stopReading = true)
+        if (!ctx.channel().isOpen) {
+            return
+        }
+        try {
+            setReadStatus(stopReading = true)
+        } catch (e: Exception) {
+            logger.debug(e) { "Unable to stop reading from the channel - channel already closed." }
+        }
     }
 
     /**
