@@ -22,9 +22,14 @@ include(
     "protocol",
     "crypto",
     "compression",
+    "protocol",
+    "protocol:osrs-228:osrs-228-api",
+    "protocol:osrs-228:osrs-228-common",
+    "protocol:osrs-228:osrs-228-desktop",
+    "protocol:osrs-228:osrs-228-internal",
+    "protocol:osrs-228:osrs-228-model",
+    "protocol:osrs-228:osrs-228-shared"
 )
-
-includeSubprojects(":protocol")
 
 fun includeSubprojects(projectName: String) {
     val projectPath = project(projectName).projectDir.toPath()

@@ -25,7 +25,7 @@ public object RSProtFlags {
     private val development: Boolean =
         getBoolean(
             "development",
-            true,
+            false,
         )
 
     /**
@@ -92,7 +92,7 @@ public object RSProtFlags {
     public val npcAvatarMaxId: Int =
         getInt(
             "npcAvatarMaxId",
-            16383,
+            65534,
         )
 
     @JvmStatic

@@ -32,6 +32,9 @@ public abstract class LoginBlockDecoder<T>(
                 throw InvalidVersionException
             }
             val subVersion = buffer.g4()
+            if (subVersion != RSProtConstants.SUB_REVISION) {
+                throw InvalidVersionException
+            }
             val firstClientType = buffer.g1()
             val loginClientType = LoginClientType[firstClientType]
             val oldSchoolClientType = loginClientType.toOldSchoolClientType()

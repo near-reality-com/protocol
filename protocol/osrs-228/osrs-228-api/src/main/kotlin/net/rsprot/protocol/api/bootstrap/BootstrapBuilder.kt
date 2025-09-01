@@ -199,14 +199,14 @@ public class BootstrapBuilder {
     }
 
     private fun getEventLoopGroupTypes(): Array<out EventLoopGroupType> {
-        val types = this.eventLoopGroupTypes
-        if (types != null) {
-            return types
-        }
+//        val types = this.eventLoopGroupTypes
+//        if (types != null) {
+//            return types
+//        }
         return arrayOf(
-            IOURING,
-            EPOLL,
-            KQUEUE,
+//            IOURING,
+//            EPOLL,
+//            KQUEUE,
             NIO,
         )
     }
@@ -285,12 +285,13 @@ public class BootstrapBuilder {
         throw IllegalStateException("No event loop groups are available in ${groupTypes.contentDeepToString()}")
     }
 
+
     private fun determineSocketChannel(type: EventLoopGroupType): Class<out ServerChannel> =
         when (type) {
-            IOURING -> IoUringServerSocketChannel::class.java
-            EPOLL -> EpollServerSocketChannel::class.java
-            KQUEUE -> KQueueServerSocketChannel::class.java
-            NIO -> NioServerSocketChannel::class.java
+//            IoUring.isAvailable() -> IoUringServerSocketChannel::class.java
+//            Epoll.isAvailable() -> EpollServerSocketChannel::class.java
+//            KQueue.isAvailable() -> KQueueServerSocketChannel::class.java
+            else -> NioServerSocketChannel::class.java
         }
 
     /**
