@@ -22,10 +22,15 @@ include(
     "protocol",
     "crypto",
     "compression",
+    "protocol",
+    "protocol:osrs-235:osrs-235-api",
+    "protocol:osrs-235:osrs-235-common",
+    "protocol:osrs-235:osrs-235-desktop",
+    "protocol:osrs-235:osrs-235-internal",
+    "protocol:osrs-235:osrs-235-model",
+    "protocol:osrs-235:osrs-235-shared",
     "haproxy",
 )
-
-includeSubprojects(":protocol")
 
 fun includeSubprojects(projectName: String) {
     val projectPath = project(projectName).projectDir.toPath()
