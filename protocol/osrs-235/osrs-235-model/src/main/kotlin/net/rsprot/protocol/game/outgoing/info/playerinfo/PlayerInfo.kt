@@ -339,8 +339,7 @@ public class PlayerInfo internal constructor(
      * building the packet.
      * @return the player info packet instance in a [PacketResult].
      */
-    @PublishedApi
-    internal fun toPacketResult(): PacketResult<PlayerInfoPacket> {
+    public fun toPacketResult(): PacketResult<PlayerInfoPacket> {
         val exception = this.exception
         if (exception != null) {
             return PacketResult.failure(

@@ -33,8 +33,6 @@ import net.rsprot.protocol.game.outgoing.info.worldentityinfo.WorldEntityAvatarF
 import net.rsprot.protocol.message.codec.incoming.provider.GameMessageConsumerRepositoryProvider
 import net.rsprot.protocol.metrics.NetworkTrafficMonitor
 import net.rsprot.protocol.threads.IllegalThreadAccessException
-import org.jire.netty.haproxy.HAProxy.childHandlerProxied
-import org.jire.netty.haproxy.HAProxyMode
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
@@ -106,7 +104,6 @@ public class NetworkService<R>
         js5Configuration: Js5Configuration,
         js5GroupProvider: Js5GroupProvider,
         public val idleStateHandlerSuppliers: IdleStateHandlerSuppliers,
-        public val haProxyMode: HAProxyMode,
         public val binaryHeaderProvider: BinaryHeaderProvider?,
     ) {
         public var encoderRepositories: MessageEncoderRepositories = MessageEncoderRepositories(huffmanCodecProvider)
@@ -155,14 +152,16 @@ public class NetworkService<R>
             val time =
                 measureTime {
                     val bootstrap = bootstrapBuilder.build(messageSizeEstimator)
-                    val initializer = LoginChannelInitializer(this)
-                    bootstrap.childHandlerProxied(initializer, haProxyMode)
-                    this.bossGroup = bootstrap.config().group()
-                    this.childGroup = bootstrap.config().childGroup()
+                    val initializer =
+                        bootstrap.childHandler(
+                            LoginChannelInitializer(this),
+                        )
+                    this.bossGroup = initializer.config().group()
+                    this.childGroup = initializer.config().childGroup()
                     val host = this.host
                     val futures =
                         ports
-                            .map { if (host != null) bootstrap.bind(host, it) else bootstrap.bind(it) }
+                            .map { if (host != null) initializer.bind(host, it) else initializer.bind(it) }
                             .map<ChannelFuture, CompletableFuture<Void>>(ChannelFuture::asCompletableFuture)
                     val future = CompletableFuture.allOf(*futures.toTypedArray())
                     js5ServiceExecutor.start()

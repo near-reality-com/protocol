@@ -29,7 +29,6 @@ include(
     "protocol:osrs-235:osrs-235-internal",
     "protocol:osrs-235:osrs-235-model",
     "protocol:osrs-235:osrs-235-shared",
-    "haproxy",
 )
 
 fun includeSubprojects(projectName: String) {

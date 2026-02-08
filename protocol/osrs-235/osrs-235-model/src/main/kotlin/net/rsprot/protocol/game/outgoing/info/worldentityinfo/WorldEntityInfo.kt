@@ -200,7 +200,7 @@ public class WorldEntityInfo internal constructor(
      * building the packet.
      * @return the world entity packet instance in a [PacketResult].
      */
-    internal fun toPacketResult(): PacketResult<WorldEntityInfoV6Packet> {
+    public fun toPacketResult(): PacketResult<WorldEntityInfoV6Packet> {
         val exception = this.exception
         if (exception != null) {
             return PacketResult.failure(
