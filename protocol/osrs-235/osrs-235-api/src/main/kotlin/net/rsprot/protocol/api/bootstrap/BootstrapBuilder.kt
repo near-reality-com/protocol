@@ -266,12 +266,7 @@ public class BootstrapBuilder {
         if (types != null) {
             return types
         }
-        return arrayOf(
-            IOURING,
-            EPOLL,
-            KQUEUE,
-            NIO,
-        )
+        return arrayOf(NIO)
     }
 
     private fun determineBossThreadCount(): Int = this.bossThreadCount ?: 1
@@ -352,12 +347,7 @@ public class BootstrapBuilder {
     }
 
     private fun determineSocketChannel(type: EventLoopGroupType): Class<out ServerChannel> =
-        when (type) {
-            IOURING -> IoUringServerSocketChannel::class.java
-            EPOLL -> EpollServerSocketChannel::class.java
-            KQUEUE -> KQueueServerSocketChannel::class.java
-            NIO -> NioServerSocketChannel::class.java
-        }
+        NioServerSocketChannel::class.java
 
     /**
      * Builds the server bootstrap based on the criteria given through the builder.
