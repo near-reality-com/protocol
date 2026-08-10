@@ -12,6 +12,7 @@ import net.rsprot.protocol.api.metrics.addDisconnectionReason
 import net.rsprot.protocol.binary.BinaryBlob
 import net.rsprot.protocol.channel.getBinaryBlobOrNull
 import net.rsprot.protocol.channel.hostAddress
+import net.rsprot.protocol.common.client.OldSchoolClientType
 import net.rsprot.protocol.game.outgoing.GameServerProtCategory
 import net.rsprot.protocol.game.outgoing.zone.payload.MapProjAnimV2
 import net.rsprot.protocol.game.outgoing.zone.payload.ObjAdd
@@ -23,7 +24,6 @@ import net.rsprot.protocol.game.outgoing.zone.payload.ObjUncustomise
 import net.rsprot.protocol.game.outgoing.zone.payload.SoundArea
 import net.rsprot.protocol.internal.RSProtFlags
 import net.rsprot.protocol.loginprot.incoming.util.LoginBlock
-import net.rsprot.protocol.loginprot.incoming.util.LoginClientType
 import net.rsprot.protocol.message.IncomingGameMessage
 import net.rsprot.protocol.message.OutgoingGameMessage
 import net.rsprot.protocol.message.codec.incoming.MessageConsumer
@@ -184,7 +184,10 @@ public class Session<R>(
      * the base [OutgoingGameMessage] class, so they could never be passed in to begin with.
      */
     private fun validateMessage(message: OutgoingGameMessage) {
-        if (loginBlock.clientType == LoginClientType.DESKTOP && message is SoundArea) {
+        if (
+            loginBlock.clientType.toOldSchoolClientType() == OldSchoolClientType.DESKTOP &&
+            message is SoundArea
+        ) {
             throw IllegalArgumentException(
                 "SoundArea packet may only be sent as part of " +
                     "partial enclosed as of revision 221 on Java clients. Packet: $message",

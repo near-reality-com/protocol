@@ -21,9 +21,10 @@ public enum class LoginClientType(
             ENHANCED_WINDOWS -> OldSchoolClientType.DESKTOP
             ENHANCED_LINUX -> OldSchoolClientType.DESKTOP
             ENHANCED_MAC -> OldSchoolClientType.DESKTOP
+            ANDROID -> OldSchoolClientType.DESKTOP
+            IOS -> OldSchoolClientType.DESKTOP
             ENHANCED_ANDROID -> OldSchoolClientType.ANDROID
             ENHANCED_IOS -> OldSchoolClientType.IOS
-            else -> null
         }
     }
 
