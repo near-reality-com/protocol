@@ -1,6 +1,7 @@
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import com.vanniktech.maven.publish.MavenPublishBasePlugin
 import com.vanniktech.maven.publish.SonatypeHost
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 
 plugins {
@@ -45,7 +46,8 @@ allprojects {
             jvmToolchain(11)
             explicitApi()
             compilerOptions {
-                freeCompilerArgs = listOf("-Xjvm-default=all")
+                // -Xjvm-default=all is gone in 2.2+; this is the same ABI.
+                jvmDefault.set(JvmDefaultMode.NO_COMPATIBILITY)
             }
         }
     }
