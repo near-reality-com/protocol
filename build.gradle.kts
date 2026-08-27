@@ -43,7 +43,7 @@ allprojects {
         }
 
         kotlin {
-            jvmToolchain(11)
+            jvmToolchain(17)
             explicitApi()
             compilerOptions {
                 // -Xjvm-default=all is gone in 2.2+; this is the same ABI.
