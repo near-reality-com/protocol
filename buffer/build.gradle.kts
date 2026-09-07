@@ -22,7 +22,7 @@ sourceSets.create("benchmarks")
 kotlin.sourceSets.getByName("benchmarks") {
     dependencies {
         implementation(rootProject.libs.jmh.runtime)
-        val mainSourceSet by sourceSets.main
+        val mainSourceSet = sourceSets.main.get()
         implementation(mainSourceSet.output)
         implementation(mainSourceSet.runtimeClasspath)
     }
