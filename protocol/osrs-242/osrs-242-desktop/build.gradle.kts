@@ -26,10 +26,7 @@ sourceSets.create("benchmarks")
 kotlin.sourceSets.getByName("benchmarks") {
     dependencies {
         implementation(rootProject.libs.jmh.runtime)
-        val mainSourceSet by sourceSets.main
-        val testSourceSet by sourceSets.test
-        val sourceSets = listOf(mainSourceSet, testSourceSet)
-        for (sourceSet in sourceSets) {
+        for (sourceSet in listOf(sourceSets.main.get(), sourceSets.test.get())) {
             implementation(sourceSet.output)
             implementation(sourceSet.runtimeClasspath)
         }
