@@ -25,7 +25,7 @@ public object RSProtFlags {
     private val development: Boolean =
         getBoolean(
             "development",
-            true,
+            false,
         )
 
     /**
