@@ -23,12 +23,12 @@ include(
     "crypto",
     "compression",
     "protocol",
-    "protocol:osrs-235:osrs-235-api",
-    "protocol:osrs-235:osrs-235-common",
-    "protocol:osrs-235:osrs-235-desktop",
-    "protocol:osrs-235:osrs-235-internal",
-    "protocol:osrs-235:osrs-235-model",
-    "protocol:osrs-235:osrs-235-shared",
+    "protocol:osrs-242:osrs-242-api",
+    "protocol:osrs-242:osrs-242-common",
+    "protocol:osrs-242:osrs-242-desktop",
+    "protocol:osrs-242:osrs-242-internal",
+    "protocol:osrs-242:osrs-242-model",
+    "protocol:osrs-242:osrs-242-shared",
     "haproxy",
 )
 
