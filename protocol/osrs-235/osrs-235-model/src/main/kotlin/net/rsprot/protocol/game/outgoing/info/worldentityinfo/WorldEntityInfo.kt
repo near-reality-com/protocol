@@ -27,6 +27,7 @@ import java.util.Collections
  * world entity in the root world.
  * @property zoneIndexStorage the storage responsible for tracking the zones in which
  * the world entities currently lie.
+ * @property filter a world entity avatar filter that must be passed to add/keep a world entity in high resolution.
  * @property renderDistance the render distance in tiles, effectively how far to render
  * world entities from the local player (or the camera pov)
  * @property coordInRootWorld the current real coordinate of the local player.
@@ -63,7 +64,8 @@ public class WorldEntityInfo internal constructor(
     private val avatarRepository: WorldEntityAvatarRepository,
     private val zoneIndexStorage: ZoneIndexStorage,
     private val recycler: ByteBufRecycler = ByteBufRecycler(),
-) : ReferencePooledObject {
+    private val filter: WorldEntityAvatarFilter? = null,
+) : ReferencePooledObject<Unit> {
     private var renderDistance: Int = DEFAULT_RENDER_DISTANCE
     private var zoneSeekRadius: Int = DEFAULT_ZONE_SEEK_RADIUS
     private var coordInRootWorld: CoordGrid = CoordGrid.INVALID
@@ -345,6 +347,7 @@ public class WorldEntityInfo internal constructor(
         val startZoneZ = ((centerFineZ shr 10) - zoneSeekRadius).coerceAtLeast(0)
         val endZoneX = ((centerFineX shr 10) + zoneSeekRadius).coerceAtMost(0x7FF)
         val endZoneZ = ((centerFineZ shr 10) + zoneSeekRadius).coerceAtMost(0x7FF)
+        val filter = this.filter
         for (x in startZoneX..endZoneX) {
             for (z in startZoneZ..endZoneZ) {
                 val npcs = this.zoneIndexStorage.get(level, x, z) ?: continue
@@ -365,6 +368,9 @@ public class WorldEntityInfo internal constructor(
                         if (!isCurrentWorldEntity && avatar.ownerIndex != localIndex) {
                             continue
                         }
+                    }
+                    if (filter != null && !filter.accept(localIndex, index)) {
+                        continue
                     }
                     val avatarCoord = avatar.currentCoordFine
                     val dx = (centerFineX - avatarCoord.x).toLong()
@@ -427,20 +433,21 @@ public class WorldEntityInfo internal constructor(
             )
             val priority = avatar.priorityTowards(localIndex)
             buffer.p1(priority.id)
-            putWorldEntityExtendedInfo(avatar, buffer)
+            val extraFlag = avatar.extendedInfo.getLowToHighResChangeExtendedInfoFlags()
+            putWorldEntityExtendedInfo(avatar, buffer, extraFlag)
         }
     }
 
     private fun putWorldEntityExtendedInfo(
         avatar: WorldEntityAvatar,
         buffer: JagByteBuf,
+        extraFlag: Int = 0,
     ) {
-        // No extra flags right now as the extended info system is still primitive
         avatar.extendedInfo.pExtendedInfo(
             oldSchoolClientType,
             buffer,
             localIndex,
-            0,
+            extraFlag,
         )
     }
 
@@ -581,6 +588,20 @@ public class WorldEntityInfo internal constructor(
     ): Boolean {
         val sourceWorldIndex = avatarRepository.getByCoordGrid(source)
         val targetWorldIndex = avatarRepository.getByCoordGrid(target)
+        return isVisible(source, sourceWorldIndex, target, targetWorldIndex, radius)
+    }
+
+    /**
+     * Checks if the [target] is visible to the [source] with precomputed world entity indices.
+     * The indices may be reused across every observer update in the same protocol cycle.
+     */
+    internal fun isVisible(
+        source: CoordGrid,
+        sourceWorldIndex: Int,
+        target: CoordGrid,
+        targetWorldIndex: Int,
+        radius: Int,
+    ): Boolean {
         // If both parties are in the root world, just run the usual checks
         if (sourceWorldIndex == ROOT_WORLD && targetWorldIndex == ROOT_WORLD) {
             return source.inDistance(target, radius) &&
@@ -678,7 +699,7 @@ public class WorldEntityInfo internal constructor(
     override fun onAlloc(
         index: Int,
         oldSchoolClientType: OldSchoolClientType,
-        newInstance: Boolean,
+        info: Unit?,
     ) {
         checkCommunicationThread()
         this.localIndex = index

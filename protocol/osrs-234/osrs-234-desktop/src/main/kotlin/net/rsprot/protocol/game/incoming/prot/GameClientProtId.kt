@@ -76,7 +76,7 @@ internal object GameClientProtId {
     const val MEMBERSHIP_PROMOTION_ELIGIBILITY = 72
     const val FRIENDLIST_ADD = 73
     const val AFFINEDCLANSETTINGS_ADDBANNED_FROMCHANNEL = 74
-    const val IF_RUNSCRIPT = 75
+    const val IF_SCRIPT_TRIGGER = 75
     const val OPLOC3 = 76
     const val OPNPCT = 77
     const val OPPLAYER5 = 78
@@ -96,8 +96,8 @@ internal object GameClientProtId {
     const val SEND_PING_REPLY = 92
     const val OPPLAYER6 = 93
     const val OPNPC3 = 94
-    const val OCULUS_LEAVE = 95
-    const val IF_CRMVIEW_CLICK = 96
+    const val EXIT_FREECAM = 95
+    const val IF_CRMVIEW_OP = 96
     const val SET_CHATFILTERSETTINGS = 97
     const val MOVE_GAMECLICK = 98
     const val OPPLAYERU = 99

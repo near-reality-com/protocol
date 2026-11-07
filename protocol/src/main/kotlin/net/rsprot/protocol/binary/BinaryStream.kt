@@ -3,10 +3,11 @@ package net.rsprot.protocol.binary
 import io.netty.buffer.ByteBuf
 import net.rsprot.buffer.extensions.p1
 import net.rsprot.buffer.extensions.p2
-import net.rsprot.buffer.extensions.pVarInt
+import net.rsprot.buffer.extensions.pMidiVarLen
 import net.rsprot.buffer.extensions.pdata
 import net.rsprot.buffer.extensions.toByteArray
 import net.rsprot.protocol.Prot
+import java.lang.ref.Cleaner
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import kotlin.math.max
@@ -15,8 +16,12 @@ import kotlin.math.min
 public class BinaryStream(
     private var buffer: ByteBuf,
     private var nanoTime: Long = 0,
-) {
+) : AutoCloseable {
     private val lockCount: AtomicInteger = AtomicInteger(0)
+    private val cleanable = CLEANER.register(this, BufferReleaser(buffer))
+
+    @Volatile
+    private var closeRequested: Boolean = false
 
     /**
      * Appends a packet into the buffer in this stream.
@@ -71,8 +76,8 @@ public class BinaryStream(
                 )
             lockCount.incrementAndGet()
             return Consumer { realSize ->
-                lockCount.decrementAndGet()
                 overwritePayload(marker, realSize)
+                if (lockCount.decrementAndGet() == 0 && closeRequested) cleanable.clean()
             }
         } finally {
             payload.release()
@@ -100,7 +105,7 @@ public class BinaryStream(
         val millisecondDelta = nanoDelta / NANOSECONDS_IN_MILLISECOND
         val delta = min(MAX_31BIT_INT, millisecondDelta).toInt()
         val bitpacked = directionOpcode or (delta shl 1)
-        this.buffer.pVarInt(bitpacked)
+        this.buffer.pMidiVarLen(bitpacked)
         if (opcode < 0x80) {
             this.buffer.p1(opcode)
         } else {
@@ -170,7 +175,20 @@ public class BinaryStream(
         return this.buffer.readableBytes()
     }
 
+    @Synchronized
+    override fun close() {
+        closeRequested = true
+        if (lockCount.get() == 0) cleanable.clean()
+    }
+
+    private class BufferReleaser(private val buffer: ByteBuf) : Runnable {
+        override fun run() {
+            if (buffer.refCnt() > 0) buffer.release()
+        }
+    }
+
     private companion object {
+        private val CLEANER: Cleaner = Cleaner.create()
         private const val MAX_31BIT_INT: Long = 1 shl 30
         private const val NANOSECONDS_IN_MILLISECOND: Long = 1_000_000
     }

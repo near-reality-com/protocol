@@ -23,7 +23,7 @@ public enum class GameClientProt(
     IF_SUBOP(GameClientProtId.IF_SUBOP, 10),
     IF_BUTTOND(GameClientProtId.IF_BUTTOND, 16),
     IF_BUTTONT(GameClientProtId.IF_BUTTONT, 16),
-    IF_RUNSCRIPT(GameClientProtId.IF_RUNSCRIPT, Prot.VAR_SHORT),
+    IF_SCRIPT_TRIGGER(GameClientProtId.IF_SCRIPT_TRIGGER, Prot.VAR_SHORT),
 
     // Op npc
     OPNPC1(GameClientProtId.OPNPC1, 3),
@@ -139,13 +139,13 @@ public enum class GameClientProt(
     CLIENT_CHEAT(GameClientProtId.CLIENT_CHEAT, Prot.VAR_BYTE),
     SET_CHATFILTERSETTINGS(GameClientProtId.SET_CHATFILTERSETTINGS, 3),
     CLICKWORLDMAP(GameClientProtId.CLICKWORLDMAP, 4),
-    OCULUS_LEAVE(GameClientProtId.OCULUS_LEAVE, 0),
+    EXIT_FREECAM(GameClientProtId.EXIT_FREECAM, 0),
     CLOSE_MODAL(GameClientProtId.CLOSE_MODAL, 0),
     TELEPORT(GameClientProtId.TELEPORT, 9),
     BUG_REPORT(GameClientProtId.BUG_REPORT, Prot.VAR_SHORT),
     SEND_SNAPSHOT(GameClientProtId.SEND_SNAPSHOT, Prot.VAR_BYTE),
     HISCORE_REQUEST(GameClientProtId.HISCORE_REQUEST, Prot.VAR_BYTE),
-    IF_CRMVIEW_CLICK(GameClientProtId.IF_CRMVIEW_CLICK, 22),
+    IF_CRMVIEW_OP(GameClientProtId.IF_CRMVIEW_OP, 22),
     UPDATE_PLAYER_MODEL_V2(GameClientProtId.UPDATE_PLAYER_MODEL_V2, 26),
 
     // Misc. client packets

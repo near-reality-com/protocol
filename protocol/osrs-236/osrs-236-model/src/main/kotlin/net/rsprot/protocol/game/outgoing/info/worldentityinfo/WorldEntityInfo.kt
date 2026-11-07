@@ -12,9 +12,11 @@ import net.rsprot.protocol.game.outgoing.info.util.BuildArea
 import net.rsprot.protocol.game.outgoing.info.util.PacketResult
 import net.rsprot.protocol.game.outgoing.info.util.ReferencePooledObject
 import net.rsprot.protocol.internal.checkCommunicationThread
+import net.rsprot.protocol.internal.client.ClientTypeMap
 import net.rsprot.protocol.internal.game.outgoing.info.CoordFine
 import net.rsprot.protocol.internal.game.outgoing.info.CoordGrid
 import net.rsprot.protocol.internal.game.outgoing.info.util.ZoneIndexStorage
+import net.rsprot.protocol.internal.game.outgoing.info.worldentityinfo.encoder.WorldEntityResolutionChangeEncoder
 import java.util.Collections
 
 /**
@@ -23,10 +25,13 @@ import java.util.Collections
  * @property localIndex the index of the local player that owns this world entity info.
  * @property allocator the byte buffer allocator used to build the buffer for the packet.
  * @property oldSchoolClientType the client type on which the player has logged in.
+ * @property resolutionChangeEncoders the client-specific encoders used when adding world entities
+ * from low to high resolution.
  * @property avatarRepository the avatar repository keeping track of every known
  * world entity in the root world.
  * @property zoneIndexStorage the storage responsible for tracking the zones in which
  * the world entities currently lie.
+ * @property filter a world entity avatar filter that must be passed to add/keep a world entity in high resolution.
  * @property renderDistance the render distance in tiles, effectively how far to render
  * world entities from the local player (or the camera pov)
  * @property coordInRootWorld the current real coordinate of the local player.
@@ -60,10 +65,12 @@ public class WorldEntityInfo internal constructor(
     internal var localIndex: Int,
     internal val allocator: ByteBufAllocator,
     private var oldSchoolClientType: OldSchoolClientType,
+    private val resolutionChangeEncoders: ClientTypeMap<WorldEntityResolutionChangeEncoder>,
     private val avatarRepository: WorldEntityAvatarRepository,
     private val zoneIndexStorage: ZoneIndexStorage,
     private val recycler: ByteBufRecycler = ByteBufRecycler(),
-) : ReferencePooledObject {
+    private val filter: WorldEntityAvatarFilter? = null,
+) : ReferencePooledObject<Unit?> {
     private var renderDistance: Int = DEFAULT_RENDER_DISTANCE
     private var zoneSeekRadius: Int = DEFAULT_ZONE_SEEK_RADIUS
     private var coordInRootWorld: CoordGrid = CoordGrid.INVALID
@@ -325,8 +332,16 @@ public class WorldEntityInfo internal constructor(
                 precomputedBuffer.readerIndex(),
                 precomputedBuffer.readableBytes(),
             )
-            val placeholderFlag = pPlaceholderExtendedInfoFlag(buffer)
-            putWorldEntityExtendedInfo(avatar, buffer, placeholderFlag)
+            val extendedInfoWriter = avatar.extendedInfo.getWriter(oldSchoolClientType)
+            val placeholderFlag = buffer.writerIndex()
+            buffer.p1(0)
+            val flag = putWorldEntityExtendedInfo(avatar, buffer, extendedInfoWriter)
+            if (flag != 0) {
+                val finalPos = buffer.writerIndex()
+                buffer.writerIndex(placeholderFlag)
+                buffer.p1(flag)
+                buffer.writerIndex(finalPos)
+            }
         }
         return count != this.highResolutionIndicesCount
     }
@@ -346,6 +361,7 @@ public class WorldEntityInfo internal constructor(
         val startZoneZ = ((centerFineZ shr 10) - zoneSeekRadius).coerceAtLeast(0)
         val endZoneX = ((centerFineX shr 10) + zoneSeekRadius).coerceAtMost(0x7FF)
         val endZoneZ = ((centerFineZ shr 10) + zoneSeekRadius).coerceAtMost(0x7FF)
+        val filter = this.filter
         for (x in startZoneX..endZoneX) {
             for (z in startZoneZ..endZoneZ) {
                 val npcs = this.zoneIndexStorage.get(level, x, z) ?: continue
@@ -366,6 +382,9 @@ public class WorldEntityInfo internal constructor(
                         if (!isCurrentWorldEntity && avatar.ownerIndex != localIndex) {
                             continue
                         }
+                    }
+                    if (filter != null && !filter.accept(localIndex, index)) {
+                        continue
                     }
                     val avatarCoord = avatar.currentCoordFine
                     val dx = (centerFineX - avatarCoord.x).toLong()
@@ -397,6 +416,7 @@ public class WorldEntityInfo internal constructor(
         if (this.highResolutionIndicesCount >= MAX_HIGH_RES_COUNT) {
             return
         }
+        val resolutionChangeEncoder = resolutionChangeEncoders[oldSchoolClientType]
         val topKArray = this.unsortedTopKArray
         val indices = topKArray.indices
         val length = topKArray.size
@@ -418,39 +438,44 @@ public class WorldEntityInfo internal constructor(
             val fineXOffset = rootBuildArea.zoneX shl 10
             val fineZOffset = rootBuildArea.zoneZ shl 10
 
+            val extendedInfoWriter = avatar.extendedInfo.getWriter(oldSchoolClientType)
             buffer.p2(avatar.index)
-            buffer.p1((avatar.sizeX shl 4) or avatar.sizeZ)
-            val placeholderFlag = pPlaceholderExtendedInfoFlag(buffer)
-            buffer.p1Alt2(priority.id)
-            buffer.p2Alt2(avatar.id)
+            val flagWriteIndex =
+                resolutionChangeEncoder.encodeAddition(
+                    buffer,
+                    avatar.id,
+                    avatar.sizeX,
+                    avatar.sizeZ,
+                    priority.id,
+                )
             buffer.encodeAngledCoordFine(
                 avatar.currentCoordFine.x - fineXOffset,
                 avatar.currentCoordFine.y,
                 avatar.currentCoordFine.z - fineZOffset,
                 avatar.angle,
             )
-            putWorldEntityExtendedInfo(avatar, buffer, placeholderFlag)
+            val extraFlag = avatar.extendedInfo.getLowToHighResChangeExtendedInfoFlags()
+            val flag = putWorldEntityExtendedInfo(avatar, buffer, extendedInfoWriter, extraFlag)
+            if (flag != 0) {
+                resolutionChangeEncoder.rewriteExtendedInfoFlag(
+                    buffer,
+                    flagWriteIndex,
+                    flag,
+                )
+            }
         }
-    }
-
-    private fun pPlaceholderExtendedInfoFlag(buffer: JagByteBuf): Int {
-        val index = buffer.writerIndex()
-        buffer.p1(0)
-        return index
     }
 
     private fun putWorldEntityExtendedInfo(
         avatar: WorldEntityAvatar,
         buffer: JagByteBuf,
-        flagWriteIndex: Int,
-    ) {
-        // No extra flags right now as the extended info system is still primitive
-        avatar.extendedInfo.pExtendedInfo(
-            oldSchoolClientType,
+        writer: WorldEntityAvatarExtendedInfoWriter,
+        extraFlag: Int = 0,
+    ): Int {
+        return avatar.extendedInfo.pExtendedInfo(
+            writer,
             buffer,
-            localIndex,
-            0,
-            flagWriteIndex,
+            extraFlag,
         )
     }
 
@@ -591,6 +616,20 @@ public class WorldEntityInfo internal constructor(
     ): Boolean {
         val sourceWorldIndex = avatarRepository.getByCoordGrid(source)
         val targetWorldIndex = avatarRepository.getByCoordGrid(target)
+        return isVisible(source, sourceWorldIndex, target, targetWorldIndex, radius)
+    }
+
+    /**
+     * Checks if the [target] is visible to the [source] with precomputed world entity indices.
+     * The indices may be reused across every observer update in the same protocol cycle.
+     */
+    internal fun isVisible(
+        source: CoordGrid,
+        sourceWorldIndex: Int,
+        target: CoordGrid,
+        targetWorldIndex: Int,
+        radius: Int,
+    ): Boolean {
         // If both parties are in the root world, just run the usual checks
         if (sourceWorldIndex == ROOT_WORLD && targetWorldIndex == ROOT_WORLD) {
             return source.inDistance(target, radius) &&
@@ -688,7 +727,7 @@ public class WorldEntityInfo internal constructor(
     override fun onAlloc(
         index: Int,
         oldSchoolClientType: OldSchoolClientType,
-        newInstance: Boolean,
+        info: Unit?,
     ) {
         checkCommunicationThread()
         this.localIndex = index

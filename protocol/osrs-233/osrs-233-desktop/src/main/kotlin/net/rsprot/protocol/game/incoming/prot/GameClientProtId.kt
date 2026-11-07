@@ -72,7 +72,7 @@ internal object GameClientProtId {
     const val FRIENDCHAT_KICK = 68
     const val SET_HEADING = 69
     const val HISCORE_REQUEST = 70
-    const val OCULUS_LEAVE = 71
+    const val EXIT_FREECAM = 71
     const val MEMBERSHIP_PROMOTION_ELIGIBILITY = 72
     const val OPLOCU = 73
     const val OPPLAYER4 = 74
@@ -81,7 +81,7 @@ internal object GameClientProtId {
     const val IGNORELIST_ADD = 77
     const val OPNPC6 = 78
     const val REFLECTION_CHECK_REPLY = 79
-    const val IF_CRMVIEW_CLICK = 80
+    const val IF_CRMVIEW_OP = 80
     const val TELEPORT = 81
     const val OPNPCU = 82
     const val FRIENDLIST_DEL = 83
@@ -96,7 +96,7 @@ internal object GameClientProtId {
     const val EVENT_MOUSE_CLICK_V2 = 92
     const val OPNPC3 = 93
     const val IF_BUTTOND = 94
-    const val IF_RUNSCRIPT = 95
+    const val IF_SCRIPT_TRIGGER = 95
     const val IDLE = 96
     const val OPLOC1 = 97
     const val OPLOC2 = 98

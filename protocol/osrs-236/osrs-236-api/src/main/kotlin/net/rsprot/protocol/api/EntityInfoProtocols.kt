@@ -9,6 +9,7 @@ import net.rsprot.protocol.common.client.OldSchoolClientType
 import net.rsprot.protocol.game.outgoing.codec.npcinfo.DesktopLowResolutionChangeEncoder
 import net.rsprot.protocol.game.outgoing.codec.npcinfo.extendedinfo.writer.NpcAvatarExtendedInfoDesktopWriter
 import net.rsprot.protocol.game.outgoing.codec.playerinfo.extendedinfo.writer.PlayerAvatarExtendedInfoDesktopWriter
+import net.rsprot.protocol.game.outgoing.codec.worldentity.DesktopWorldEntityResolutionChangeEncoder
 import net.rsprot.protocol.game.outgoing.codec.worldentity.extendedinfo.WorldEntityAvatarExtendedInfoDesktopWriter
 import net.rsprot.protocol.game.outgoing.info.npcinfo.DeferredNpcInfoProtocolSupplier
 import net.rsprot.protocol.game.outgoing.info.npcinfo.NpcAvatarExtendedInfoWriter
@@ -20,10 +21,12 @@ import net.rsprot.protocol.game.outgoing.info.playerinfo.PlayerAvatarFactory
 import net.rsprot.protocol.game.outgoing.info.playerinfo.PlayerInfoProtocol
 import net.rsprot.protocol.game.outgoing.info.worldentityinfo.WorldEntityAvatarExtendedInfoWriter
 import net.rsprot.protocol.game.outgoing.info.worldentityinfo.WorldEntityAvatarFactory
+import net.rsprot.protocol.game.outgoing.info.worldentityinfo.WorldEntityAvatarFilter
 import net.rsprot.protocol.game.outgoing.info.worldentityinfo.WorldEntityProtocol
 import net.rsprot.protocol.internal.client.ClientTypeMap
 import net.rsprot.protocol.internal.game.outgoing.info.npcinfo.encoder.NpcResolutionChangeEncoder
 import net.rsprot.protocol.internal.game.outgoing.info.util.ZoneIndexStorage
+import net.rsprot.protocol.internal.game.outgoing.info.worldentityinfo.encoder.WorldEntityResolutionChangeEncoder
 
 /**
  * The entity info protocols class brings together the relatively complex player and NPC info
@@ -84,16 +87,19 @@ public class EntityInfoProtocols
                 npcInfoSupplier: NpcInfoSupplier,
                 worldEntityInfoSupplier: WorldEntityInfoSupplier,
                 filter: NpcAvatarFilter?,
+                worldEntityAvatarFilter: WorldEntityAvatarFilter?,
             ): EntityInfoProtocols {
                 val playerWriters = mutableListOf<PlayerAvatarExtendedInfoWriter>()
                 val npcWriters = mutableListOf<NpcAvatarExtendedInfoWriter>()
                 val npcResolutionChangeEncoders = mutableListOf<NpcResolutionChangeEncoder>()
                 val worldEntityWriters = mutableListOf<WorldEntityAvatarExtendedInfoWriter>()
+                val worldEntityResolutionChangeEncoders = mutableListOf<WorldEntityResolutionChangeEncoder>()
                 if (OldSchoolClientType.DESKTOP in clientTypes) {
                     playerWriters += PlayerAvatarExtendedInfoDesktopWriter()
                     npcWriters += NpcAvatarExtendedInfoDesktopWriter()
                     npcResolutionChangeEncoders += DesktopLowResolutionChangeEncoder()
                     worldEntityWriters += WorldEntityAvatarExtendedInfoDesktopWriter()
+                    worldEntityResolutionChangeEncoders += DesktopWorldEntityResolutionChangeEncoder()
                 }
                 val zoneIndexStorage =
                     ZoneIndexStorage(
@@ -111,7 +117,9 @@ public class EntityInfoProtocols
                         allocator,
                         worldEntityInfoSupplier,
                         worldEntityAvatarFactory,
+                        worldEntityResolutionChangeEncoders,
                         zoneIndexStorage,
+                        worldEntityAvatarFilter,
                     )
                 val playerAvatarFactory =
                     buildPlayerAvatarFactory(allocator, playerInfoSupplier, playerWriters, huffmanCodecProvider)
@@ -212,13 +220,22 @@ public class EntityInfoProtocols
                 allocator: ByteBufAllocator,
                 worldEntityInfoSupplier: WorldEntityInfoSupplier,
                 worldEntityAvatarFactory: WorldEntityAvatarFactory,
+                worldEntityResolutionChangeEncoders: MutableList<WorldEntityResolutionChangeEncoder>,
                 zoneIndexStorage: ZoneIndexStorage,
+                filter: WorldEntityAvatarFilter?,
             ) = WorldEntityProtocol(
                 allocator,
                 worldEntityInfoSupplier.worldEntityAvatarExceptionHandler,
                 worldEntityAvatarFactory,
+                ClientTypeMap.of(
+                    worldEntityResolutionChangeEncoders,
+                    OldSchoolClientType.COUNT,
+                ) {
+                    it.clientType
+                },
                 worldEntityInfoSupplier.worldEntityInfoProtocolWorker,
                 zoneIndexStorage,
+                filter,
             )
 
             private fun buildPlayerInfoProtocol(

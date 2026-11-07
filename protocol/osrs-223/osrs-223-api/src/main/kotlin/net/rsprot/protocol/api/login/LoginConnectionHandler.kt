@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.handler.timeout.IdleStateEvent
 import net.rsprot.buffer.JagByteBuf
+import net.rsprot.buffer.extensions.toJagByteBuf
 import net.rsprot.protocol.api.NetworkService
 import net.rsprot.protocol.api.logging.networkLog
 import net.rsprot.protocol.channel.hostAddress
@@ -106,10 +107,11 @@ public class LoginConnectionHandler<R>(
                     ctx.close()
                     return
                 }
-                decodeLoginPacket(ctx, msg)
+                decodeLoginPacket(ctx, decodeRemainingBetaArchives(ctx, msg))
             }
             is GameLogin -> {
                 if (this.loginState != LoginState.UNINITIALIZED) {
+                    msg.buffer.buffer.release()
                     ctx.close()
                     return
                 }
@@ -123,6 +125,7 @@ public class LoginConnectionHandler<R>(
             }
 
             is GameReconnect -> {
+                releaseLoginBlock()
                 this.loginPacket = msg
                 this.loginHeader =
                     networkService
@@ -236,6 +239,14 @@ public class LoginConnectionHandler<R>(
         ctx: ChannelHandlerContext,
         cause: Throwable,
     ) {
+        // Special case for when the header fails to decode - this happens directly inside Netty's event loop.
+        if (cause == InvalidVersionException) {
+            // Write a message indicating client is outdated
+            ctx
+                .writeAndFlush(LoginResponse.ClientOutOfDate)
+                .addListener(ChannelFutureListener.CLOSE)
+            return
+        }
         networkService
             .exceptionHandlers
             .channelExceptionHandler
@@ -258,20 +269,44 @@ public class LoginConnectionHandler<R>(
         }
     }
 
+    private fun decodeRemainingBetaArchives(
+        ctx: ChannelHandlerContext,
+        remainingBetaArchives: RemainingBetaArchives,
+    ): IntArray {
+        val header = this.loginHeader ?: error("Login header not set")
+        val clientType =
+            checkNotNull(header.clientType.toOldSchoolClientType()) {
+                "Unsupported login client type: ${header.clientType}"
+            }
+        val decoder = networkService.decoderRepositories.loginCrcDecoders[clientType]
+        val payload = remainingBetaArchives.toByteArray()
+        val buffer =
+            ctx
+                .alloc()
+                .buffer(payload.size)
+                .writeBytes(payload)
+                .toJagByteBuf()
+        return try {
+            decoder.decodeRemainingBeta(buffer)
+        } finally {
+            buffer.buffer.release()
+        }
+    }
+
     private fun decodeLoginPacket(
         ctx: ChannelHandlerContext,
-        remainingBetaArchives: RemainingBetaArchives?,
+        remainingBetaCrc: IntArray?,
     ) {
         val loginPacket = this.loginPacket ?: return
         this.loginPacket = null
         val responseHandler = GameLoginResponseHandler(networkService, ctx)
         when (val packet = loginPacket) {
             is GameLogin -> {
-                decodeGameLoginBuffer(packet, ctx, remainingBetaArchives, responseHandler)
+                decodeGameLoginBuffer(packet, ctx, remainingBetaCrc, responseHandler)
             }
 
             is GameReconnect -> {
-                decodeGameReconnectBuffer(packet, ctx, remainingBetaArchives, responseHandler)
+                decodeGameReconnectBuffer(packet, ctx, remainingBetaCrc, responseHandler)
             }
 
             else -> {
@@ -283,7 +318,7 @@ public class LoginConnectionHandler<R>(
     private fun decodeGameLoginBuffer(
         packet: GameLogin,
         ctx: ChannelHandlerContext,
-        remainingBetaArchives: RemainingBetaArchives?,
+        remainingBetaCrc: IntArray?,
         responseHandler: GameLoginResponseHandler<R>,
     ) {
         decodeLogin(
@@ -317,8 +352,8 @@ public class LoginConnectionHandler<R>(
                         .addListener(ChannelFutureListener.CLOSE)
                     return@handle
                 }
-                if (remainingBetaArchives != null) {
-                    block.mergeBetaCrcs(remainingBetaArchives)
+                if (remainingBetaCrc != null) {
+                    block.mergeBetaCrcs(remainingBetaCrc)
                 }
                 networkLog(logger) {
                     "Successful game login from channel '${ctx.channel()}': $block"
@@ -344,6 +379,9 @@ public class LoginConnectionHandler<R>(
                     "Fatal error in handling decoded login block."
                 }
                 throw t
+            } finally {
+                val buf = packet.buffer.buffer
+                if (buf.refCnt() > 0) buf.release()
             }
         }
     }
@@ -351,7 +389,7 @@ public class LoginConnectionHandler<R>(
     private fun decodeGameReconnectBuffer(
         packet: GameReconnect,
         ctx: ChannelHandlerContext,
-        remainingBetaArchives: RemainingBetaArchives?,
+        remainingBetaCrc: IntArray?,
         responseHandler: GameLoginResponseHandler<R>,
     ) {
         decodeLogin(
@@ -387,8 +425,8 @@ public class LoginConnectionHandler<R>(
                         .addListener(ChannelFutureListener.CLOSE)
                     return@handle
                 }
-                if (remainingBetaArchives != null) {
-                    block.mergeBetaCrcs(remainingBetaArchives)
+                if (remainingBetaCrc != null) {
+                    block.mergeBetaCrcs(remainingBetaCrc)
                 }
                 networkLog(logger) {
                     "Successful game reconnection from channel '${ctx.channel()}': $block"
@@ -414,6 +452,9 @@ public class LoginConnectionHandler<R>(
                     "Fatal error in handling decoded login block."
                 }
                 throw t
+            } finally {
+                val buf = packet.buffer.buffer
+                if (buf.refCnt() > 0) buf.release()
             }
         }
     }

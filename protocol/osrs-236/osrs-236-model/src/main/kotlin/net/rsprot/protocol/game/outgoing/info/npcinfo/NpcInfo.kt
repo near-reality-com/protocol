@@ -54,7 +54,7 @@ public class NpcInfo internal constructor(
     private val recycler: ByteBufRecycler,
     private val filter: NpcAvatarFilter?,
     private var worldEntityInfo: WorldEntityInfo?,
-) : ReferencePooledObject {
+) : ReferencePooledObject<WorldEntityInfo> {
     /**
      * The maximum render distance how far a player will see other NPCs.
      * Unlike with player info, this does not automatically resize to accommodate for nearby NPCs,
@@ -590,6 +590,7 @@ public class NpcInfo internal constructor(
             if (fragmented) {
                 details.defragmentIndices()
             }
+            details.pendingObserverIndex = details.highResolutionNpcIndexCount
             if (details.worldId == ROOT_WORLD) {
                 processRootWorldLowResolution(details, bitBuffer, renderDistance, zoneSearchRadius)
             } else {
@@ -602,6 +603,25 @@ public class NpcInfo internal constructor(
             if (details.extendedInfoCount > 0) {
                 bitBuffer.pBits(16, 0xFFFF)
             }
+        }
+    }
+
+    /**
+     * Registers additions only after every world has removed its old observations for this player.
+     */
+    internal fun registerNewObservers(details: NpcInfoWorldDetails) {
+        var cur = details.pendingObserverIndex
+        val count = details.highResolutionNpcIndexCount
+        val arr = details.highResolutionNpcIndices
+        val local = localPlayerIndex
+        try {
+            while (cur < count) {
+                val npcIndex = arr[cur].toInt()
+                repository.getOrNull(npcIndex)?.addObserver(local)
+                cur++
+            }
+        } finally {
+            details.pendingObserverIndex = if (cur >= count) Int.MAX_VALUE else cur
         }
     }
 
@@ -926,7 +946,6 @@ public class NpcInfo internal constructor(
                     if (filter != null && !filter.accept(localPlayerIndex, index)) {
                         continue
                     }
-                    avatar.addObserver(localPlayerIndex)
                     val i = details.highResolutionNpcIndexCount++
                     details.incrementPriority(
                         i,
@@ -1031,7 +1050,6 @@ public class NpcInfo internal constructor(
                     if (filter != null && !filter.accept(localPlayerIndex, index)) {
                         continue
                     }
-                    avatar.addObserver(localPlayerIndex)
                     val i = details.highResolutionNpcIndexCount++
                     details.incrementPriority(
                         i,
@@ -1097,7 +1115,7 @@ public class NpcInfo internal constructor(
     override fun onAlloc(
         index: Int,
         oldSchoolClientType: OldSchoolClientType,
-        newInstance: Boolean,
+        info: WorldEntityInfo?,
     ) {
         checkCommunicationThread()
         this.localPlayerIndex = index
@@ -1105,6 +1123,9 @@ public class NpcInfo internal constructor(
         this.renderDistance = DEFAULT_DISTANCE
         this.localPlayerCurrentCoord = CoordGrid.INVALID
         this.localPlayerLastCoord = localPlayerCurrentCoord
+        if (info != null) {
+            this.worldEntityInfo = info
+        }
         // There is always a root world!
         details[WORLD_ENTITY_CAPACITY] = detailsStorage.poll(ROOT_WORLD)
     }
@@ -1125,7 +1146,9 @@ public class NpcInfo internal constructor(
     }
 
     private fun releaseObservers(details: NpcInfoWorldDetails) {
-        for (i in 0..<details.highResolutionNpcIndexCount) {
+        // Packet construction can fail before deferred additions have been registered.
+        val registeredCount = minOf(details.highResolutionNpcIndexCount, details.pendingObserverIndex)
+        for (i in 0..<registeredCount) {
             val npcIndex = details.highResolutionNpcIndices[i].toInt()
             val avatar = repository.getOrNull(npcIndex) ?: continue
             avatar.removeObserver(localPlayerIndex)

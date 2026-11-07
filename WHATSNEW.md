@@ -1,5 +1,171 @@
 ## What's New?
 
+### Revision 242
+
+#### Additions
+- SET_WEBSITE_TOKEN: Sets a token for name changes in the future.
+- All OPLOC* packets now have a new variant that reads 3 bytes for id.
+- LOC_ADD_CHANGE_V3 which uses 3 bytes for id.
+
+### Revision 241
+
+#### Additions
+- VARP_LONG: A way to send a 64 bit value to the client.
+- UPDATE_TRADINGPOST_V2: Changed price to a long.
+- UPDATE_STOCKMARKET_SLOT_V2: Changed price and completedGold to a long.
+Furthermore, supports a section for extra info, but because the packet is
+a fixed size, that extra info must always be empty.
+- OBJUNLOCK_RESET: Originally intended for bronzeman mode, but it failed the polls.
+The packet will likely be removed in the future. The packet clears existing
+unlocked obj tracking.
+- OBJUNLOCK_UPDATE: Originally intended for bronzeman mode, but it failed the polls.
+The packet will likely be removed in the future. The packet tells the client which
+objs to mark as unlocked.
+- OBJ_CUSTOMISE_SPECIFIC_V2: Adds the ability to apply more than one
+recolour or retexture, as well as the ability to set all triangles to a specific
+colour.
+- NPC body customisation V4: Adds support for recolouring all triangles of a
+NPC's model to a specific colour.
+- Player obj type customisation: Adds the ability to recolour/retexture up to 256 values,
+up from 2. Additionally adds support for recolouring all triangles to a specific
+colour.
+
+#### Removals
+- CAM_LOOKAT_V2
+- CAM_MOVETO_ARC_V2
+- CAM_MOVETO_CYCLES_V2
+- CAM_MOVETO_V2
+- CAM_ROTATETO_COORDINATE_V2
+- NPC_INFO_LARGE_V5
+- NPC_INFO_SMALL_V5
+- OPNPC 1-5 V1
+- OPLOC 1-5 V1
+- OPOBJ 1-5 V1
+
+### Revision 240
+
+#### Additions
+- A new serverprot with a size of -2 that has no handler in neither Java nor native.
+- A new version of the spotanim extended info on players and NPCs. Each spotanim
+now comes with a boolean for "loops", which tells the client to keep looping that
+spotanim if the seq type of that spotanim allows looping.
+
+#### Changes
+- CLIENT_CHEAT packet now sends a byte after the cheat. The value is a constant
+zero on Java.
+
+### Revision 239
+
+> [!NOTE]
+> Four packets were renamed in a breaking manner with the release of
+> 1.0.0-ALPHA-20260624.\
+> These packets are:\
+> PlayerAnimSpecific → AnimSpecific\
+> CamLookAtEasedCoord → CamRotateToCoordinate\
+> IfCrmViewClick → IfCrmViewOp\
+> OculusLeave → ExitFreecam
+
+#### Additions
+- CAM_MOVETO_V3: Adds support for heightRelative boolean, which makes the height
+variable relative to the previous move-to cam packet's height, rather than absolute.
+- CAM_LOOKAT_V3: Adds support for heightRelative boolean, which makes the height
+variable relative to the previous look-at cam packet's height, rather than absolute.
+- CAM_MOVETO_CYCLES_V3: Adds support for heightRelative boolean, which makes the height
+variable relative to the previous move-to cam packet's height, rather than absolute.
+- CAM_ROTATETO_COORDINATE_V3: Adds support for heightRelative boolean, which makes the height
+variable relative to the previous look-at cam packet's height, rather than absolute.
+Additionally, adds support for trackTarget variable, which makes the client track
+the specific coordinate if it happens to move in the client.
+- CAM_MOVETO_ARC_V3: Adds support for heightRelative boolean, which makes the height
+variable relative to the previous move-to cam packet's height, rather than absolute.
+- CAM_LOOKAT_CYCLES: New variant of camera packets, similar to cam look-at, but
+tweened linearly between coordinates.
+- SCRIPTEDPROJ_ADD zone packet. This can only be transmitted as part of the
+partial enclosed packet. It is a new variant of projectiles where the server can
+supply a more precise start/end coordinate, and can adjust the path mid-flight,
+as well as freeze it altogether and delete, if desired.
+In the Java client, it is currently bugged to only
+support a single scripted projectile, as all scripted projectiles share variables.
+- SCRIPTEDPROJ_CHANGE zone packet. This can only be transmitted as part of the
+partial enclosed packet. Used to modify the target, freeze the projectile,
+or delete it mid-flight. In the Java client, it is currently bugged to only
+support a single scripted projectile, as all scripted projectiles share variables.
+- GROUP_FULL packet. Exact purpose is unknown at this stage, but it is likely
+for the upcoming bingo feature. Allows the server to essentially transmit a
+dynamic database table to the client.
+- GROUP_VAR packet. Used to update the values of one or many group vars.
+- GROUP_VAR_INT packet. Used to update the value of a single int-based var.
+- GROUP_VAR_LONG packet. Used to update the value of a single long-based var.
+- Player & NPC transparency extended info. Allows the server to modify the transparency
+gradually on a given entity.
+- Player & Npc freeze extended info. Freezes the given entity on-spot, pausing
+any animation that might be ongoing.
+- Npc body customisation V3 extended info. Adds support for turning a NPC into
+a player by supplying the identkit, worn equipment, body type and colours.
+
+### Revision 238
+
+> [!IMPORTANT]
+> Rebuild WorldEntity V4 now uses absolute zone coordinates in the provider
+> interface.
+
+#### Additions
+- AMBIENCE_START packet. Loops an ambience sound effect indefinitely.
+NOTE: Ambience sound effects are their own cache archive, not to be confused
+with regular sound effects.
+- AMBIENCE_STOP packet.
+- CAM_UNLOCK packet. Uncaps the pitch min and max values of the camera.
+- CAM_SKYBOX packet. Sets a skybox model at 0,0 coordinate. Currently only
+works on native - java has not fully been wired up.
+- CAM_TARGET_V4 packet. No longer takes world entity id with every type,
+the client simply infers it based on context. Additionally now supports a
+coordinate target.
+
+#### Changes
+- Face angle & face pathingentity have been merged into a single
+extended info for players and NPCs. It now supports more properties,
+and the ability to face a world entity.
+
+#### Removals
+- REBUILD_NORMAL_V1
+- REBUILD_REGION_V1
+- IF_SETMODEL_V1
+- ZBUF
+- OP{LOC,NPC,OBJ}1..5
+
+### Revision 237
+
+> [!IMPORTANT]
+> Root/toplevel world id changed from -1 to 0 in this revision.
+> Users must make sure their serverside code is using the new constant.
+> If you relied on any of the ROOT_WORLD constants in classes such as
+> WorldEntityInfo, you should be fine as-is.
+
+#### Additions
+- RESUME_P_LONGDIALOG added.
+- RUNCLIENTSCRIPT supports `long` data type via 'Ï' char code.
+- IF_SETMODEL_V2 added, supporting g4() for models.
+- Obj customisation section in appearance extended info uses g4() for models.
+- Hitmarks and headbars separated into two individual extended infos.
+  - Hitmarks no longer support soaking.
+  - Hitmarks now have a 'limit' property, defining the maximum number of hitmarks that can render at once. The default is 4, the upper limit is 20.
+- NPC head and body customisation new variants that use g4() for models.
+- OPLOC*_V2 packets, supporting subops.
+- OPNPC*_V2 packets, supporting subops.
+- OPOBJ*_V2 packets, supporting subops.
+- REBUILD_NORMAL_V2 which removes XTEA support.
+- REBUILD_REGION_V2 which removes XTEA support.
+- REBUILD_WORLDENTITY_V4 which removes XTEA support.
+
+#### Removals
+- UPDATE_REBOOT_TIMER_V1
+- SET_MAP_FLAG_V1
+- CAM_MOVETO_V1
+- CAM_LOOKAT_V1
+- CAM_MOVETO_CYCLES_V1
+- CAM_MOVETO_ARC_V1
+- WORLDENTITY_INFO_V6
+
 ### Revision 236
 Revision 236 brings a handful of new variants of existing packets.
 
@@ -15,7 +181,7 @@ obfuscated, unlike their V1 counterparts.
 - CAM_MOVETO_V2
 - CAM_LOOKAT_V2
 - CAM_MOVETO_CYCLES_V2
-- CAM_LOOKAT_EASED_COORD_V2
+- CAM_ROTATETO_COORDINATE_V2
 - CAM_MOVETO_ARC_V2
 
 Changes:
@@ -122,9 +288,7 @@ Below is a list of additions to __server__ prots.
 Below is a list of additions to __client__ prots.
 - IF_BUTTONX - A new variant of IF_BUTTON(1-10) that sends the button id
   inside the packet. It now supports button ids 1 through 32.
-- IF_RUNSCRIPT - A way of invoking a serverscript in the server, by the client.
-  The exact usages of it are currently unknown, but it effectively works the same
-  way as RUN_CLIENTSCRIPT does for server -> client.
+- IF_SCRIPT_TRIGGER - A way of invoking a serverscript in the server, by the client.
 
 #### Removals
 - SET_ACTIVE_WORLD_V1

@@ -22,7 +22,7 @@ internal object GameServerProtId {
     const val IF_OPENTOP = 18
     const val OBJ_ADD = 19
     const val OBJ_DEL = 20
-    const val REBUILD_WORLDENTITY = 21
+    const val REBUILD_WORLDENTITY_V2 = 21
     const val LOGOUT_WITHREASON = 22
     const val OCULUS_SYNC = 23
     const val IF_RESYNC = 24
@@ -30,7 +30,7 @@ internal object GameServerProtId {
     const val NPC_SPOTANIM_SPECIFIC = 26
     const val VARP_SMALL = 27
     const val MAP_PROJANIM = 28
-    const val CAM_LOOKAT_EASED_COORD = 29
+    const val CAM_ROTATETO_COORDINATE = 29
     const val CAM_SHAKE = 30
     const val REBUILD_REGION = 31
     const val IF_CLEARINV = 32
@@ -79,7 +79,7 @@ internal object GameServerProtId {
     const val UPDATE_TRADINGPOST = 75
     const val UPDATE_INV_PARTIAL = 76
     const val HINT_ARROW = 77
-    const val PLAYER_ANIM_SPECIFIC = 78
+    const val ANIM_SPECIFIC = 78
     const val IF_SETROTATESPEED = 79
     const val CAM_MOVETO = 80
     const val NPC_HEADICON_SPECIFIC = 81

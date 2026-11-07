@@ -69,7 +69,7 @@ public class GameMessageDecoder<R>(
 
     private fun mapOpcode(opcode: Int): Int {
         val mapper = networkService.clientToServerOpcodeMapper ?: return opcode
-        return mapper.decode(opcode)
+        return mapper.map(opcode)
     }
 
     override fun decode(
@@ -143,6 +143,7 @@ public class GameMessageDecoder<R>(
                 }
                 input.skipBytes(length)
                 state = DecoderState.READ_OPCODE
+                session.incrementDiscardedPacketCount()
                 return
             }
             val payload = input.readSlice(length)

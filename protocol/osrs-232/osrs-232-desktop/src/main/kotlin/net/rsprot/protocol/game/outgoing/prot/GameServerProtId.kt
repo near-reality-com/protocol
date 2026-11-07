@@ -18,7 +18,7 @@ internal object GameServerProtId {
     const val IF_SETNPCHEAD_ACTIVE = 14
     const val IF_SETPLAYERMODEL_BASECOLOUR = 15
     const val SET_INTERACTION_MODE = 16
-    const val CAM_LOOKAT_EASED_COORD = 17
+    const val CAM_ROTATETO_COORDINATE = 17
     const val CAM_ROTATETO = 18
     const val CLANSETTINGS_FULL = 19
     const val RESET_ANIMS = 20
@@ -27,7 +27,7 @@ internal object GameServerProtId {
     const val VARP_LARGE = 23
     const val LOGOUT = 24
     const val UPDATE_INV_FULL = 25
-    const val PLAYER_ANIM_SPECIFIC = 26
+    const val ANIM_SPECIFIC = 26
     const val SYNTH_SOUND = 27
     const val UPDATE_STOCKMARKET_SLOT = 28
     const val UPDATE_STAT_V2 = 29
@@ -57,7 +57,7 @@ internal object GameServerProtId {
     const val MESSAGE_CLANCHANNEL_SYSTEM = 53
     const val IF_MOVESUB = 54
     const val VARP_SYNC = 55
-    const val REBUILD_WORLDENTITY_V2 = 56
+    const val REBUILD_WORLDENTITY_V3 = 56
     const val OBJ_DEL_SPECIFIC = 57
     const val IF_CLEARINV = 58
     const val UPDATE_ZONE_FULL_FOLLOWS = 59

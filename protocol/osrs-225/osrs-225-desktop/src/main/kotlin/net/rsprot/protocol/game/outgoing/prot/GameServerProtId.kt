@@ -36,7 +36,7 @@ internal object GameServerProtId {
     const val CAM_MODE = 32
     const val IF_SETPLAYERMODEL_BODYTYPE = 33
     const val MESSAGE_CLANCHANNEL = 34
-    const val CAM_LOOKAT_EASED_COORD = 35
+    const val CAM_ROTATETO_COORDINATE = 35
     const val IF_RESYNC = 36
     const val CAM_TARGET_OLD = 37
     const val IF_SETPLAYERHEAD = 38
@@ -61,7 +61,7 @@ internal object GameServerProtId {
     const val IF_SETHIDE = 57
     const val UPDATE_TRADINGPOST = 58
     const val LOGOUT = 59
-    const val PLAYER_ANIM_SPECIFIC = 60
+    const val ANIM_SPECIFIC = 60
     const val UPDATE_FRIENDLIST = 61
     const val CAM_LOOKAT = 62
     const val FRIENDLIST_LOADED = 63
@@ -132,7 +132,7 @@ internal object GameServerProtId {
     const val CLEAR_ENTITIES = 128
     const val SET_ACTIVE_WORLD = 129
     const val HIDEOBJOPS = 130
-    const val REBUILD_WORLDENTITY = 131
+    const val REBUILD_WORLDENTITY_V2 = 131
     const val HIDENPCOPS = 132
     const val HIDELOCOPS = 133
     const val WORLDENTITY_INFO = 134

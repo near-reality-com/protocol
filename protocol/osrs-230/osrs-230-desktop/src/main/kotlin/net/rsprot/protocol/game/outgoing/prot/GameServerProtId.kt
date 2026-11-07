@@ -33,7 +33,7 @@ internal object GameServerProtId {
     const val MESSAGE_PRIVATE = 29
     const val CAM_LOOKAT = 30
     const val UPDATE_FRIENDCHAT_CHANNEL_FULL_V2 = 31
-    const val REBUILD_WORLDENTITY_V2 = 32
+    const val REBUILD_WORLDENTITY_V3 = 32
     const val HISCORE_REPLY = 33
     const val CHAT_FILTER_SETTINGS = 34
     const val VARP_SMALL = 35
@@ -51,7 +51,7 @@ internal object GameServerProtId {
     const val IF_SETEVENTS = 47
     const val IF_SETPLAYERMODEL_OBJ = 48
     const val IF_SETANGLE = 49
-    const val PLAYER_ANIM_SPECIFIC = 50
+    const val ANIM_SPECIFIC = 50
     const val NPC_HEADICON_SPECIFIC = 51
     const val SEND_PING = 52
     const val IF_RESYNC = 53
@@ -96,7 +96,7 @@ internal object GameServerProtId {
     const val OCULUS_SYNC = 92
     const val IF_SETSCROLLPOS = 93
     const val IF_SETTEXT = 94
-    const val CAM_LOOKAT_EASED_COORD = 95
+    const val CAM_ROTATETO_COORDINATE = 95
     const val IF_SETPLAYERMODEL_BODYTYPE = 96
     const val PROJANIM_SPECIFIC_V3 = 97
     const val SOUND_AREA = 98

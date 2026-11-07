@@ -10,16 +10,17 @@ import io.netty.util.AttributeKey
 import net.rsprot.protocol.binary.BinaryBlob
 import net.rsprot.protocol.binary.BinaryHeader
 import net.rsprot.protocol.binary.BinaryStream
+import org.jire.netty.haproxy.HAProxyAttributes.sourceHost
 
 /**
  * Gets the host address from the given channel.
  */
-public fun Channel.hostAddress(): String = remoteAddress().toString().substringBefore(":")
+public fun Channel.hostAddress(): String = sourceHost
 
 /**
  * Gets the host address from the given channel handler context.
  */
-public fun ChannelHandlerContext.hostAddress(): String = channel().hostAddress()
+public fun ChannelHandlerContext.hostAddress(): String = sourceHost
 
 /**
  * Replaces a channel handler with a new variant.

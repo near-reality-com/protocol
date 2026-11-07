@@ -21,7 +21,7 @@ internal object GameClientProtId {
     const val RESUME_P_OBJDIALOG = 17
     const val EVENT_MOUSE_SCROLL = 18
     const val EVENT_MOUSE_CLICK_V1 = 19
-    const val IF_RUNSCRIPT = 20
+    const val IF_SCRIPT_TRIGGER = 20
     const val OPOBJU = 21
     const val OPNPC1 = 22
     const val OPLOC1 = 23
@@ -48,7 +48,7 @@ internal object GameClientProtId {
     const val OPOBJ3 = 44
     const val OPOBJ1 = 45
     const val RESUME_P_COUNTDIALOG = 46
-    const val OCULUS_LEAVE = 47
+    const val EXIT_FREECAM = 47
     const val IGNORELIST_DEL = 48
     const val OPWORLDENTITY5 = 49
     const val OPLOCT = 50
@@ -81,7 +81,7 @@ internal object GameClientProtId {
     const val EVENT_NATIVE_MOUSE_CLICK_V2 = 77
     const val EVENT_KEYBOARD = 78
     const val OPPLAYERT = 79
-    const val IF_CRMVIEW_CLICK = 80
+    const val IF_CRMVIEW_OP = 80
     const val SET_HEADING = 81
     const val SOUND_JINGLEEND = 82
     const val OPPLAYER7 = 83
