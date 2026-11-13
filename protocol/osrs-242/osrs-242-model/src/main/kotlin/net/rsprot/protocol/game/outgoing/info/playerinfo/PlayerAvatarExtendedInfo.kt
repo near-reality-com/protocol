@@ -1556,6 +1556,20 @@ public class PlayerAvatarExtendedInfo(
      * Clears any obj type customisations applied to [wearpos].
      * @param wearpos the worn item slot.
      */
+    /**
+     * Near-Reality: sets the bytes appended to the end of the appearance block (null for none), e.g. worn-obj
+     * recolours past the standard four and a cosmetic particle colour. Only a change flags the appearance.
+     */
+    public fun setNearRealityExtension(data: ByteArray?) {
+        checkCommunicationThread()
+        val current = blocks.appearance.nearRealityExtension
+        if (current === data || (current != null && data != null && current.contentEquals(data))) {
+            return
+        }
+        blocks.appearance.nearRealityExtension = data?.copyOf()
+        flagAppearance()
+    }
+
     public fun resetObjTypeCustomisation(wearpos: Int) {
         checkCommunicationThread()
         verify {

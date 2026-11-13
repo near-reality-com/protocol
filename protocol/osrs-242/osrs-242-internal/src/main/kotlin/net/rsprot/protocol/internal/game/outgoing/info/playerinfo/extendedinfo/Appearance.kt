@@ -153,6 +153,12 @@ public class Appearance(
      */
     public var afterCombatLevel: String = ""
 
+    /**
+     * Near-Reality: bytes appended after the last standard field. The client reads the appearance from a buffer
+     * of its own, so clients that do not know the extension never read them.
+     */
+    public var nearRealityExtension: ByteArray? = null
+
     override fun clear() {
         releaseBuffers()
         name = ""
@@ -177,6 +183,7 @@ public class Appearance(
         walkAnimLeft = MAX_UNSIGNED_SHORT
         walkAnimRight = MAX_UNSIGNED_SHORT
         runAnim = MAX_UNSIGNED_SHORT
+        nearRealityExtension = null
     }
 
     public companion object {

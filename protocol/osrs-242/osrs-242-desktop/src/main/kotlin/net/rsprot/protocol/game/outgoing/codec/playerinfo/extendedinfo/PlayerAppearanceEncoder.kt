@@ -36,6 +36,7 @@ public class PlayerAppearanceEncoder : PrecomputedExtendedInfoEncoder<Appearance
         intermediate.pjstr(extendedInfo.afterName)
         intermediate.pjstr(extendedInfo.afterCombatLevel)
         intermediate.p1(extendedInfo.pronoun.toInt())
+        extendedInfo.nearRealityExtension?.let { intermediate.pdata(it) }
         val appearanceSize = intermediate.readableBytes()
         if (appearanceSize > 255) {
             intermediate.buffer.release()
