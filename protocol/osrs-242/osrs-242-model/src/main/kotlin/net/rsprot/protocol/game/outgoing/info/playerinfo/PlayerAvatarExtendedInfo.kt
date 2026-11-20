@@ -1970,7 +1970,7 @@ public class PlayerAvatarExtendedInfo(
             flag = flag or MOVE_SPEED
         }
         if (this.flags and FACE == 0 &&
-            (blocks.face.hasPersistentTarget() || lastObservation != -1) &&
+            (blocks.face.hasObservableFacing() || lastObservation != -1) &&
             blocks.face.isPrecomputed(oldSchoolClientType)
         ) {
             flag = flag or FACE
@@ -1980,11 +1980,14 @@ public class PlayerAvatarExtendedInfo(
 
     /**
      * Silently synchronizes the angle of the avatar, meaning any new observers will see them
-     * at this specific angle.
+     * at this specific angle. Ignored on a cycle that already flagged a face block, which wins.
      * @param angle the angle to render them under.
      */
     public fun syncAngle(angle: Int) {
         checkCommunicationThread()
+        if (flags and FACE != 0) {
+            return
+        }
         this.blocks.face.syncAngle(angle)
     }
 

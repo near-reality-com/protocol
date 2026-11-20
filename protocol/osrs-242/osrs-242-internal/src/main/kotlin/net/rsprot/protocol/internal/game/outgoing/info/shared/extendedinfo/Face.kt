@@ -43,9 +43,31 @@ public class Face(
         releaseBuffers()
     }
 
+    /**
+     * Whether new observers must receive this block: anything but a reset. OSRS sends the avatar's
+     * facing with nearly every low to high resolution add (a rev 235 capture: 170 of 176 adds).
+     */
+    public fun hasObservableFacing(): Boolean {
+        return kind != Kind.Reset
+    }
+
+    /**
+     * Silently stores [angle] as the facing new observers receive. A face-locked entity target is kept,
+     * since it takes priority over an angle; anything else becomes an instant angle that walking cancels.
+     */
     public fun syncAngle(angle: Int) {
+        if (kind == Kind.Entity) {
+            this.angle = angle
+            return
+        }
+        if (kind == Kind.Angle && this.angle == angle && instant && walkMode == 0) {
+            return
+        }
         this.outOfDate = true
+        this.kind = Kind.Angle
         this.angle = angle
+        this.instant = true
+        this.walkMode = 0
     }
 
     public enum class Kind(
